@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Payback Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #12233D;
+    --navy-soft: #1B355A;
+    --amber: #F2A93B;
+    --amber-soft: #FCE3B8;
+    --slate-bg: #EEF2F5;
+    --paper: #FFFFFF;
+    --ink: #12233D;
+    --ink-mute: #5B6B80;
+    --line: #DCE3EA;
+    --good: #2F8F6F;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--slate-bg);
+    color: var(--ink);
+    padding: 40px 20px;
+    line-height: 1.5;
+  }
+
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 32px;
+  }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle {
+    color: var(--ink-mute);
+    font-size: 15px;
+    margin-top: 8px;
+    max-width: 560px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 24px;
+  }
+
+  @media (max-width: 800px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px;
+  }
+
+  .panel h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--navy);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .field {
+    margin-bottom: 18px;
+  }
+
+  .field label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-mute);
+    margin-bottom: 6px;
+  }
+
+  .field label .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--navy);
+    font-weight: 700;
+  }
+
+  select, input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    background: #FAFBFC;
+    color: var(--ink);
+  }
+
+  select:focus, input[type="number"]:focus, input[type="range"]:focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 1px;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--amber);
+  }
+
+  .hint {
+    font-size: 11.5px;
+    color: var(--ink-mute);
+    margin-top: 4px;
+  }
+
+  /* Results panel */
+  .hero-number {
+    background: var(--navy);
+    border-radius: 10px;
+    padding: 24px 24px;
+    color: white;
+    margin-bottom: 20px;
+  }
+
+  .hero-number .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber-soft);
+    margin-bottom: 6px;
+  }
+
+  .hero-number .big {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 44px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .hero-number .big .unit {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--amber-soft);
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stat {
+    background: #FAFBFC;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .stat .label {
+    font-size: 11.5px;
+    color: var(--ink-mute);
+    margin-bottom: 4px;
+  }
+
+  .stat .value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  .stat .value.good { color: var(--good); }
+
+  /* Monthly bar chart (signature element) */
+  .chart-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-mute);
+    margin-bottom: 10px;
+  }
+
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 100px;
+    margin-bottom: 6px;
+  }
+
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+  }
+
+  .bar {
+    width: 100%;
+    background: linear-gradient(180deg, var(--amber) 0%, #E08A1F 100%);
+    border-radius: 3px 3px 0 0;
+    transition: height 0.25s ease;
+    min-height: 3px;
+  }
+
+  .bar-labels {
+    display: flex;
+    gap: 4px;
+  }
+
+  .bar-labels span {
+    flex: 1;
+    text-align: center;
+    font-size: 9.5px;
+    color: var(--ink-mute);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .assumptions {
+    margin-top: 28px;
+    font-size: 12px;
+    color: var(--ink-mute);
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+  }
+
+  .assumptions summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--navy);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+  }
+
+  .assumptions ul {
+    margin: 10px 0 0 18px;
+  }
+
+  .assumptions li { margin-bottom: 4px; }
+
+  footer {
+    text-align: center;
+    margin-top: 32px;
+    font-size: 12px;
+    color: var(--ink-mute);
+  }
+
+  /* Live data panel */
+  .live-panel {
+    background: var(--navy-soft);
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-bottom: 24px;
+    color: white;
+  }
+
+  .live-panel .live-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--amber);
+    display: inline-block;
+  }
+
+  .dot.on { background: var(--good); box-shadow: 0 0 0 3px rgba(47,143,111,0.3); }
+
+  .live-desc {
+    font-size: 12.5px;
+    color: #C7D3E0;
+    margin-bottom: 14px;
+  }
+
+  .live-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .live-row input[type="text"] {
+    flex: 1;
+    min-width: 160px;
+    padding: 9px 12px;
+    border-radius: 7px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: white;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+
+  .live-row input[type="text"]::placeholder { color: #8FA0B8; }
+
+  .live-row button {
+    background: var(--amber);
+    color: var(--navy);
+    border: none;
+    border-radius: 7px;
+    padding: 9px 18px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .live-row button:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  .live-status {
+    font-size: 12px;
+    margin-top: 10px;
+    color: #C7D3E0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .live-status.error { color: #F2A9A9; }
+  .live-status.success { color: #8FE0BE; }
+
+  .api-key-note {
+    font-size: 11px;
+    color: #8FA0B8;
+    margin-top: 8px;
+  }
+
+  .api-key-note a { color: var(--amber); }
+
+  /* LinkedIn export */
+  .export-btn {
+    width: 100%;
+    margin-top: 20px;
+    background: var(--navy);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 13px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .export-btn:hover { background: var(--navy-soft); }
+
+  .export-box {
+    display: none;
+    margin-top: 14px;
+    background: #FAFBFC;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .export-box.show { display: block; }
+
+  .export-box textarea {
+    width: 100%;
+    min-height: 160px;
+    border: none;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    resize: vertical;
+  }
+
+  .export-box .copy-btn {
+    margin-top: 8px;
+    background: var(--amber);
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--navy);
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Rooftop Solar</div>
+    <h1>Solar Payback Calculator</h1>
+    <p class="subtitle">Estimate system size, annual generation, payback period, and CO₂ offset for a rooftop PV system in Australia.</p>
+  </header>
+
+  <div class="live-panel">
+    <div class="live-title"><span class="dot" id="liveDot"></span>Use live NREL PVWatts data</div>
+    <div class="live-desc">Enter a real address and a free NREL API key to pull actual solar resource data for that exact location, instead of the city-average estimate below.</div>
+    <div class="live-row">
+      <input type="text" id="addressInput" placeholder="e.g. 23 Combewood Avenue, Sydney NSW">
+      <input type="text" id="apiKeyInput" placeholder="NREL API key">
+      <button id="fetchBtn">Fetch live data</button>
+    </div>
+    <div class="live-status" id="liveStatus">Not connected &mdash; using regional averages below.</div>
+    <div class="api-key-note">Free instant API key: <a href="https://developer.nrel.gov/signup/" target="_blank" rel="noopener">developer.nrel.gov/signup</a></div>
+  </div>
+
+  <div class="grid">
+    <!-- INPUTS -->
+    <div class="panel">
+      <h2>System &amp; Site</h2>
+
+      <div class="field">
+        <label>City / Region <span class="val" id="cityVal">Sydney, NSW</span></label>
+        <select id="city">
+          <option value="1450|0.68" selected>Sydney, NSW</option>
+          <option value="1350|0.79">Melbourne, VIC</option>
+          <option value="1550|0.73">Brisbane, QLD</option>
+          <option value="1600|0.55">Perth, WA</option>
+          <option value="1500|0.25">Adelaide, SA</option>
+          <option value="1500|0.68">Canberra, ACT</option>
+          <option value="1550|0.53">Darwin, NT</option>
+          <option value="1250|0.75">Hobart, TAS</option>
+        </select>
+        <div class="hint">Sets estimated solar yield (kWh/kWp/yr) and grid emission factor for the region.</div>
+      </div>
+
+      <div class="field">
+        <label>System size <span class="val" id="sizeVal">6.6 kW</span></label>
+        <input type="range" id="size" min="1.5" max="15" step="0.1" value="6.6">
+        <div class="hint">Typical Australian residential system: 6.6&ndash;10 kW.</div>
+      </div>
+
+      <div class="field">
+        <label>Roof tilt / orientation <span class="val" id="tiltVal">Good (north-facing)</span></label>
+        <select id="tilt">
+          <option value="1.0" selected>Good (north-facing)</option>
+          <option value="0.9">Average (east/west-facing)</option>
+          <option value="0.75">Poor (south-facing / heavy shade)</option>
+        </select>
+      </div>
+
+      <h2 style="margin-top:28px;">Cost &amp; Usage</h2>
+
+      <div class="field">
+        <label>Install cost <span class="val" id="costVal">$1,200 / kW</span></label>
+        <input type="range" id="costPerKw" min="800" max="2000" step="10" value="1200">
+      </div>
+
+      <div class="field">
+        <label>Electricity rate <span class="val" id="rateVal">$0.32 / kWh</span></label>
+        <input type="range" id="rate" min="0.15" max="0.50" step="0.01" value="0.32">
+      </div>
+
+      <div class="field">
+        <label>Feed-in tariff <span class="val" id="fitVal">$0.06 / kWh</span></label>
+        <input type="range" id="fit" min="0" max="0.15" step="0.01" value="0.06">
+      </div>
+
+      <div class="field">
+        <label>Self-consumption <span class="val" id="selfVal">40%</span></label>
+        <input type="range" id="selfConsume" min="10" max="90" step="5" value="40">
+        <div class="hint">% of solar generation used directly at home rather than exported to the grid.</div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="panel">
+      <h2>Results</h2>
+
+      <div class="hero-number">
+        <div class="label">Payback Period</div>
+        <div class="big"><span id="payback">6.4</span><span class="unit">years</span></div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat">
+          <div class="label">Annual generation</div>
+          <div class="value" id="annualGen">9,570 kWh</div>
+        </div>
+        <div class="stat">
+          <div class="label">Annual savings</div>
+          <div class="value good" id="annualSavings">$1,247</div>
+        </div>
+        <div class="stat">
+          <div class="label">System cost</div>
+          <div class="value" id="sysCost">$7,920</div>
+        </div>
+        <div class="stat">
+          <div class="label">CO₂ offset / year</div>
+          <div class="value good" id="co2">6.5 tonnes</div>
+        </div>
+      </div>
+
+      <div class="chart-title">Estimated monthly generation (kWh)</div>
+      <div class="bars" id="bars"></div>
+      <div class="bar-labels">
+        <span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span>
+        <span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span>
+      </div>
+
+      <details class="assumptions">
+        <summary>Assumptions used</summary>
+        <ul>
+          <li>Regional yield figures approximate typical PVWatts-style output (kWh/kWp/year) &mdash; real output varies with shading, panel quality, and inverter losses.</li>
+          <li>Monthly split uses a fixed seasonal curve (summer-peaked) applied to the annual total &mdash; not location-specific month-by-month data.</li>
+          <li>Grid emission factors are approximate national averages by state and change over time as the grid decarbonises.</li>
+          <li>Savings assume no battery storage; exported energy is paid at the feed-in tariff, self-used energy offsets the full retail rate.</li>
+          <li>Excludes maintenance, inverter replacement, and financing costs.</li>
+        </ul>
+      </details>
+
+      <button class="export-btn" id="exportBtn">Generate LinkedIn post</button>
+      <div class="export-box" id="exportBox">
+        <textarea id="exportText" readonly></textarea>
+        <button class="copy-btn" id="copyBtn">Copy to clipboard</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>Estimates only &mdash; for a real quote, get a site assessment from a CEC-accredited installer.</footer>
+</div>
+
+<script>
+  const els = {
+    city: document.getElementById('city'),
+    size: document.getElementById('size'),
+    tilt: document.getElementById('tilt'),
+    costPerKw: document.getElementById('costPerKw'),
+    rate: document.getElementById('rate'),
+    fit: document.getElementById('fit'),
+    selfConsume: document.getElementById('selfConsume'),
+  };
+
+  const monthlyShape = [0.075, 0.075, 0.08, 0.08, 0.075, 0.065, 0.07, 0.08, 0.09, 0.10, 0.10, 0.095]; // sums to 1, summer-peaked (S. hemisphere)
+
+  // Live PVWatts state — null until a successful live fetch replaces the estimate
+  let liveData = null; // { annualKwhPerKw, monthlyKwh (per kW, array of 12), lat, lon, address }
+
+  function fmtMoney(n) {
+    return '$' + Math.round(n).toLocaleString();
+  }
+
+  async function fetchLiveData() {
+    const address = document.getElementById('addressInput').value.trim();
+    const apiKey = document.getElementById('apiKeyInput').value.trim();
+    const statusEl = document.getElementById('liveStatus');
+    const dotEl = document.getElementById('liveDot');
+    const btn = document.getElementById('fetchBtn');
+
+    if (!address) {
+      statusEl.textContent = 'Enter an address first.';
+      statusEl.className = 'live-status error';
+      return;
+    }
+    if (!apiKey) {
+      statusEl.textContent = 'Enter your free NREL API key first (link below).';
+      statusEl.className = 'live-status error';
+      return;
+    }
+
+    btn.disabled = true;
+    statusEl.textContent = 'Looking up address...';
+    statusEl.className = 'live-status';
+
+    try {
+      // Step 1: geocode the address with OpenStreetMap Nominatim (free, no key)
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(address)}`);
+      const geoJson = await geoRes.json();
+      if (!geoJson.length) {
+        throw new Error('Address not found. Try a more specific address.');
+      }
+      const lat = parseFloat(geoJson[0].lat);
+      const lon = parseFloat(geoJson[0].lon);
+
+      statusEl.textContent = `Found location (${lat.toFixed(3)}, ${lon.toFixed(3)}). Fetching PVWatts data...`;
+
+      // Step 2: call NREL PVWatts v8 API for a 1kW system to get per-kW yield figures
+      const pvUrl = `https://developer.nrel.gov/api/pvwatts/v8.json?api_key=${encodeURIComponent(apiKey)}&lat=${lat}&lon=${lon}&system_capacity=1&module_type=0&array_type=1&tilt=20&azimuth=0&losses=14.08`;
+      const pvRes = await fetch(pvUrl);
+      const pvJson = await pvRes.json();
+
+      if (pvJson.errors && pvJson.errors.length) {
+        throw new Error(pvJson.errors.join(' '));
+      }
+      if (!pvJson.outputs) {
+        throw new Error('No output data returned from PVWatts.');
+      }
+
+      liveData = {
+        annualKwhPerKw: pvJson.outputs.ac_annual,
+        monthlyKwhPerKw: pvJson.outputs.ac_monthly, // array of 12, per kW
+        lat, lon, address
+      };
+
+      statusEl.textContent = `Live data loaded for "${address}" — ${Math.round(liveData.annualKwhPerKw)} kWh/kWp/year.`;
+      statusEl.className = 'live-status success';
+      dotEl.classList.add('on');
+      update();
+
+    } catch (err) {
+      statusEl.textContent = 'Error: ' + err.message + ' — falling back to regional estimate.';
+      statusEl.className = 'live-status error';
+      liveData = null;
+      dotEl.classList.remove('on');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('fetchBtn').addEventListener('click', fetchLiveData);
+
+  function update() {
+    const [cityYield, emissionFactor] = els.city.value.split('|').map(Number);
+    const yieldKwhPerKwp = liveData ? liveData.annualKwhPerKw : cityYield;
+    const size = parseFloat(els.size.value);
+    const tiltFactor = parseFloat(els.tilt.value);
+    const costPerKw = parseFloat(els.costPerKw.value);
+    const rate = parseFloat(els.rate.value);
+    const fit = parseFloat(els.fit.value);
+    const selfPct = parseFloat(els.selfConsume.value) / 100;
+
+    const cityLabel = els.city.options[els.city.selectedIndex].text;
+    document.getElementById('cityVal').textContent = cityLabel;
+    document.getElementById('sizeVal').textContent = size.toFixed(1) + ' kW';
+    document.getElementById('tiltVal').textContent = els.tilt.options[els.tilt.selectedIndex].text;
+    document.getElementById('costVal').textContent = fmtMoney(costPerKw) + ' / kW';
+    document.getElementById('rateVal').textContent = '$' + rate.toFixed(2) + ' / kWh';
+    document.getElementById('fitVal').textContent = '$' + fit.toFixed(2) + ' / kWh';
+    document.getElementById('selfVal').textContent = (selfPct * 100).toFixed(0) + '%';
+
+    // When using live data, PVWatts already accounts for a fixed tilt/azimuth,
+    // so only apply the manual tilt factor when we're on the rough regional estimate.
+    const effectiveTiltFactor = liveData ? 1.0 : tiltFactor;
+    const annualGen = size * yieldKwhPerKwp * effectiveTiltFactor;
+    const selfUsed = annualGen * selfPct;
+    const exported = annualGen * (1 - selfPct);
+    const annualSavings = (selfUsed * rate) + (exported * fit);
+    const systemCost = size * costPerKw;
+    const payback = systemCost / annualSavings;
+    const co2Tonnes = (annualGen * emissionFactor) / 1000;
+
+    document.getElementById('annualGen').textContent = Math.round(annualGen).toLocaleString() + ' kWh';
+    document.getElementById('annualSavings').textContent = fmtMoney(annualSavings);
+    document.getElementById('sysCost').textContent = fmtMoney(systemCost);
+    document.getElementById('co2').textContent = co2Tonnes.toFixed(1) + ' tonnes';
+    document.getElementById('payback').textContent = payback.toFixed(1);
+
+    // Monthly bars — use real PVWatts monthly split if live data loaded, else the seasonal estimate
+    const barsEl = document.getElementById('bars');
+    barsEl.innerHTML = '';
+    const monthlyKwh = liveData
+      ? liveData.monthlyKwhPerKw.map(kwhPerKw => kwhPerKw * size)
+      : monthlyShape.map(f => annualGen * f);
+    const maxKwh = Math.max(...monthlyKwh);
+    monthlyKwh.forEach(kwh => {
+      const col = document.createElement('div');
+      col.className = 'bar-col';
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = (kwh / maxKwh * 100) + '%';
+      bar.title = Math.round(kwh) + ' kWh';
+      col.appendChild(bar);
+      barsEl.appendChild(col);
+    });
+  }
+
+  Object.values(els).forEach(el => el.addEventListener('input', update));
+  update();
+
+  // --- LinkedIn export ---
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const size = document.getElementById('sizeVal').textContent;
+    const payback = document.getElementById('payback').textContent;
+    const annualGen = document.getElementById('annualGen').textContent;
+    const annualSavings = document.getElementById('annualSavings').textContent;
+    const co2 = document.getElementById('co2').textContent;
+    const cityLabel = document.getElementById('cityVal').textContent;
+    const locationLine = liveData
+      ? `using live NREL PVWatts data for ${liveData.address}`
+      : `using regional estimates for ${cityLabel}`;
+
+    const text =
+`I built a rooftop solar payback calculator ☀️
+
+It takes a system size, install cost, electricity rate, and location, and estimates:
+→ Annual generation
+→ Payback period
+→ CO₂ offset per year
+
+Example run (${locationLine}):
+• ${size} system
+• ${annualGen}/year generated
+• ${annualSavings}/year in savings
+• Payback in ${payback} years
+• ${co2} CO₂ offset annually
+
+Built with vanilla HTML/JS on the front end, pulling live solar resource data from NREL's PVWatts API. Happy to share the code / walk through the logic if useful!
+
+#renewableenergy #solar #engineering #sustainability`;
+
+    const box = document.getElementById('exportBox');
+    document.getElementById('exportText').value = text;
+    box.classList.add('show');
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    const textarea = document.getElementById('exportText');
+    textarea.select();
+    navigator.clipboard.writeText(textarea.value).then(() => {
+      const btn = document.getElementById('copyBtn');
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = original; }, 1500);
+    });
+  });
+</script>
+</body>
+</html>
